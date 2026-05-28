@@ -22,9 +22,9 @@
         }
 
         th, td {
-            border: 1px solid #ddd;
             padding: 8px 12px;
             text-align: left;
+            border: 1px solid #ddd;
         }
 
         th {
@@ -82,35 +82,58 @@
         <input type="number" id="jumlah" placeholder="Jumlah (Rp)" required>
         <button type="submit">Simpan</button>
     </form>
+
     <h2>Daftar Transaksi</h2>
     <table>
-
-        <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Jenis</th><th>Jumlah</th></tr></thead>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Keterangan</th>
+                <th>Jenis</th>
+                <th>Jumlah</th>
+            </tr>
+        </thead>
         <tbody id="tabel-transaksi"></tbody>
     </table>
+
     <script>
         const API = "http://54.175.213.54:8000";
-        function formatRupiah(n) { return "Rp " + Number(n).toLocaleString("id-ID"); }
-        async function loadTransaksi() {
-            const res = await fetch(API + "/transaksi");
-            const data = await res.json();
-            const tbody = document.getElementById("tabel-transaksi");
-            tbody.innerHTML = "";
-            data.forEach(function (t) {
-                tbody.innerHTML += `<tr><td>${t.tanggal}</td><td>${t.keterangan}</td>
-     <td
-class="${t.jenis}">${t.jenis}</td><td>${formatRupiah(t.jumlah)}</td></tr>`;
-            });
+
+        function formatRupiah(n) {
+            return "Rp " + Number(n).toLocaleString("id-ID");
         }
-        document.getElementById("form-transaksi").addEventListener("submit", async
-function (e) {
-                e.preventDefault();
-                const body = {
-                    tanggal: document.getElementById("tanggal").value,
-                    keterangan: document.getElementById("keterangan").value,
-                    jenis: document.getElementById("jenis").value,
-                    jumlah: parseFloat(document.getElementById("jumlah").value)
-                };
+
+        async function loadTransaksi() {
+            try {
+                const res = await fetch(API + "/transaksi");
+                const data = await res.json();
+                const tbody = document.getElementById("tabel-transaksi");
+                tbody.innerHTML = "";
+
+                data.forEach(function (t) {
+                    tbody.innerHTML += `<tr>
+                            <td>${t.tanggal}</td>
+                            <td>${t.keterangan}</td>
+                            <td class="${t.jenis}">${t.jenis}</td>
+                            <td>${formatRupiah(t.jumlah)}</td>
+                        </tr>`;
+                });
+            } catch (error) {
+                console.error("Gagal memuat data transaksi:", error);
+            }
+        }
+
+        const form = document.getElementById("form-transaksi");
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const body = {
+                tanggal: document.getElementById("tanggal").value,
+                keterangan: document.getElementById("keterangan").value,
+                jenis: document.getElementById("jenis").value,
+                jumlah: parseFloat(document.getElementById("jumlah").value)
+            };
+
+            try {
                 await fetch(API + "/transaksi", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -118,7 +141,11 @@ function (e) {
                 });
                 e.target.reset();
                 loadTransaksi();
-            });
+            } catch (error) {
+                console.error("Gagal menyimpan transaksi:", error);
+            }
+        });
+
         loadTransaksi();
     </script>
 </body>
